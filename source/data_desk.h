@@ -9,6 +9,11 @@ License : MIT, at end of file.
 #ifndef DATA_DESK_H_INCLUDED_
 #define DATA_DESK_H_INCLUDED_
 
+#ifndef BUILD_WIN32
+#define BUILD_WIN32 1
+#define BUILD_LINUX 0
+#endif
+
 #define DATA_DESK_VERSION_MAJOR 1
 #define DATA_DESK_VERSION_MINOR 1
 #define DATA_DESK_VERSION_PATCH 0
@@ -56,6 +61,9 @@ License : MIT, at end of file.
 // NOTE(rjf): Documentation macros that are evaluated by external tool.
 #define DataDeskDoc(...)
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 
 /*
@@ -78,7 +86,7 @@ typedef void DataDeskInitCallback(void);
 DataDeskDoc("Defines the expected format for the callback that Data Desk calls for each top-level structure that it parses. Loaded from custom layers as the symbol \"DataDeskCustomParseCallback\".")
 typedef void DataDeskParseCallback(DataDeskDoc("The root node of the abstract-syntax-tree that was parsed.")
                                    DataDeskNode *root,
-                                   
+
                                    DataDeskDoc("The name of the file from which the tree was parsed.")
                                    char *filename);
 
@@ -86,8 +94,21 @@ DataDeskDoc("Defines the expected format for the callback that Data Desk calls w
 typedef void DataDeskCleanUpCallback(void);
 
 
+typedef struct DataDeskCustom DataDeskCustom;
+struct DataDeskCustom
+{
+  DataDeskInitCallback* InitCallback;
+  DataDeskParseCallback* ParseCallback;
+  DataDeskCleanUpCallback* CleanUpCallback;
 
+#if BUILD_WIN32
+  HANDLE custom_dll;
+#elif BUILD_LINUX
+  void* custom_dll;
+#endif
 
+};
+int datadesk_entry(const char* a_dsFilePath, int a_bLog, DataDeskCustom a_dsClbk);
 
 /*
 | /////////////////////////////////////////////////////////////////
@@ -987,7 +1008,7 @@ DataDeskInterpretNumericExpressionAsInteger(DataDeskNode *root)
             
             case DataDeskNodeType_UnaryOperator:
             {
-                DataDeskUnaryOperatorType unary_operator_type = root->sub_type;
+                DataDeskUnaryOperatorType unary_operator_type = (DataDeskUnaryOperatorType)root->sub_type;
                 int operand = DataDeskInterpretNumericExpressionAsInteger(root->operand);
                 switch(unary_operator_type)
                 {
@@ -1013,7 +1034,7 @@ DataDeskInterpretNumericExpressionAsInteger(DataDeskNode *root)
             
             case DataDeskNodeType_BinaryOperator:
             {
-                DataDeskBinaryOperatorType binary_operator_type = root->sub_type;
+                DataDeskBinaryOperatorType binary_operator_type = (DataDeskBinaryOperatorType)root->sub_type;
                 int left_tree = DataDeskInterpretNumericExpressionAsInteger(root->left);
                 int right_tree = DataDeskInterpretNumericExpressionAsInteger(root->right);
                 
@@ -1041,7 +1062,7 @@ DataDeskInterpretNumericExpressionAsInteger(DataDeskNode *root)
 DATA_DESK_HEADER_PROC char *
 DataDeskGetBinaryOperatorString(DataDeskBinaryOperatorType type)
 {
-    char *strings[] =
+    char const *strings[] =
     {
         "(invalid)",
         "+",
@@ -1056,26 +1077,26 @@ DataDeskGetBinaryOperatorString(DataDeskBinaryOperatorType type)
         "&&",
         "||",
     };
-    return strings[type];
+    return (char*)(strings[type]);
 }
 
 DATA_DESK_HEADER_PROC char *
 DataDeskGetUnaryOperatorString(DataDeskUnaryOperatorType type)
 {
-    char *strings[] =
+    char const *strings[] =
     {
         "(invalid)",
         "-",
         "!",
         "~",
     };
-    return strings[type];
+    return (char*)(strings[type]);
 }
 
 DATA_DESK_HEADER_PROC void
 DataDeskError(DataDeskNode *node, char *format, ...)
 {
-    char *filename = "";
+    char *filename = (char*)"";
     int line = 0;
     
     if(node)
@@ -1095,7 +1116,7 @@ DataDeskError(DataDeskNode *node, char *format, ...)
 DATA_DESK_HEADER_PROC void
 DataDeskWarning(DataDeskNode *node, char *format, ...)
 {
-    char *filename = "";
+    char *filename = (char*)"";
     int line = 0;
     
     if(node)
@@ -1396,7 +1417,7 @@ _DataDeskFWriteGraphAsC(FILE *file, DataDeskNode *root, DataDeskCPrintContext *c
             case DataDeskNodeType_UnaryOperator:
             {
                 _DataDeskFWriteC(file, context, "(");
-                char *unary_operator_string = DataDeskGetUnaryOperatorString(root->sub_type);
+                char *unary_operator_string = DataDeskGetUnaryOperatorString((DataDeskUnaryOperatorType)root->sub_type);
                 _DataDeskFWriteC(file, context, "%s", unary_operator_string);
                 _DataDeskFWriteC(file, context, "(");
                 _DataDeskFWriteGraphAsC(file, root->operand, context);
@@ -1409,7 +1430,7 @@ _DataDeskFWriteGraphAsC(FILE *file, DataDeskNode *root, DataDeskCPrintContext *c
             {
                 _DataDeskFWriteC(file, context, "(");
                 _DataDeskFWriteGraphAsC(file, root->left, context);
-                char *binary_operator_string = DataDeskGetBinaryOperatorString(root->sub_type);
+                char *binary_operator_string = DataDeskGetBinaryOperatorString((DataDeskBinaryOperatorType)root->sub_type);
                 _DataDeskFWriteC(file, context, "%s", binary_operator_string);
                 _DataDeskFWriteGraphAsC(file, root->right, context);
                 _DataDeskFWriteC(file, context, ")");
@@ -1786,6 +1807,10 @@ DataDeskFWriteStringAsLowerCamelCaseN(FILE *file, char *string, int string_lengt
         }
     }
 }
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // DATA_DESK_H_INCLUDED_
 

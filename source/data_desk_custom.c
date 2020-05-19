@@ -6,20 +6,7 @@ Updated : 5 December 2019
 License : MIT, at end of file.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 
-typedef struct DataDeskCustom DataDeskCustom;
-struct DataDeskCustom
-{
-    DataDeskInitCallback    *InitCallback;
-    DataDeskParseCallback   *ParseCallback;
-    DataDeskCleanUpCallback *CleanUpCallback;
-    
-#if BUILD_WIN32
-    HANDLE custom_dll;
-#elif BUILD_LINUX
-    void *custom_dll;
-#endif
-    
-};
+
 
 static DataDeskCustom
 DataDeskCustomLoad(char *custom_dll_path)
