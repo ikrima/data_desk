@@ -80,7 +80,7 @@ MemoryArenaClear(MemoryArena *arena)
 }
 
 static int
-StringMatchCaseSensitiveN(char *a, char *b, int n)
+StringMatchCaseSensitiveN(const char *a, const char *b, int n)
 {
     int matches = 0;
     if(a && b && n)
@@ -99,7 +99,7 @@ StringMatchCaseSensitiveN(char *a, char *b, int n)
 }
 
 static int
-StringMatchCaseSensitive(char *a, char *b)
+StringMatchCaseSensitive(const char *a, const char *b)
 {
     int matches = 0;
     if(a && b)
