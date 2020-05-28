@@ -91,7 +91,7 @@ int datadesk_entry(const char* a_dsFilePath, int a_bLog, DataDeskCustom a_dsClbk
   Log("Data Desk v" DATA_DESK_VERSION_STRING);
 
   if (a_dsClbk.InitCallback) {
-    a_dsClbk.InitCallback();
+    a_dsClbk.InitCallback(a_dsClbk.clbkCtx);
   }
 
   ParseContext parse_context = {0};
@@ -122,7 +122,7 @@ int datadesk_entry(const char* a_dsFilePath, int a_bLog, DataDeskCustom a_dsClbk
   ProcessParsedGraph(parsed_files[0].filename, parsed_files[0].root, &parse_context, a_dsClbk);
 
   if (a_dsClbk.CleanUpCallback) {
-    a_dsClbk.CleanUpCallback();
+    a_dsClbk.CleanUpCallback(a_dsClbk.clbkCtx);
   }
 
 
