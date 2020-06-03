@@ -21,7 +21,7 @@ GenerateGraphNullTerminatedStrings(ParseContext *context, DataDeskNode *root)
             typedef struct Word Word;
             struct Word
             {
-                char *string;
+                const char *string;
                 int length;
             };
             
@@ -42,7 +42,7 @@ GenerateGraphNullTerminatedStrings(ParseContext *context, DataDeskNode *root)
             {
                 for(int i = 0; i < node->string_length; ++i)
                 {
-                    char *word_start = 0;
+                    const char *word_start = 0;
                     int word_length = 0;
                     
                     if(i == 0 || node->string[i - 1] == '_' ||
@@ -207,7 +207,7 @@ CallCustomParseCallbacks(ParseContext *context, DataDeskNode *root, DataDeskCust
     {
         for(DataDeskNode *node = root; node; node = node->next)
         {
-            custom.ParseCallback(node, filename);
+            custom.ParseCallback(custom.clbkCtx, node, filename);
         }
     }
 }
